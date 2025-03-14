@@ -1,0 +1,52 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: test-app-policy
+  namespace: test-namespace
+spec:
+  minAvailable: 2
+  selector:
+    matchLabels:
+      appName: "testApp"
+---
+kind: NetworkPolicy
+apiVersion: networking.k8s.io/v1
+metadata:
+  name: test-app-policy-deny-all
+  namespace: test-namespace
+  labels:
+    appName: "testApp"
+    env: "test"
+    manifestVersion: "0.0.1"
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: test-app-policy-from-ingress
+  namespace: test-namespace
+  labels:
+    appName: "testApp"
+    env: "test"
+    manifestVersion: "0.0.1"
+spec:
+  podSelector:
+    matchLabels:
+      appName: "testApp"
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: ingress-nginx2
+  egress:
+    - to:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/instance: ingress-nginx2

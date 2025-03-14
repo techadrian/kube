@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-app
+  namespace: test-namespace
+  labels:
+    appName: "testApp"
+    env: "test"
+    manifestVersion: "0.0.1"
+spec:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0%
+      maxSurge: 33%
+  replicas: 3
+  selector:
+    matchLabels:
+      appName: "testApp"
+  template:
+    metadata:
+      labels:
+        env: "test"
+        appName: "testApp"
+        appVersion: "0.0.1"
+    spec:
+      serviceAccountName: "test-app"
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 3000
+        fsGroup: 2000
+        supplementalGroups: [ 4000 ]
+      containers:
+        - name: hello-world
+          image: "pvermeyden/nodejs-hello-world:a1e8cf1edcc04e6d905078aed9861807f6da0da4"
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - mountPath: /app/config/config.json
+              subPath: config.json
+              name: config
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsNonRoot: true
+            privileged: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              add: [ "NET_ADMIN", "SYS_TIME" ]
+              drop: [ "ALL" ]
+#            seLinuxOptions:
+#              user: system_u
+#              role: system_r
+#              type: spc_t
+#              level: s0:c100,c101
+            seccompProfile:
+              type: RuntimeDefault
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          startupProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 15
+            periodSeconds: 10
+            failureThreshold: 5
+          livenessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 1
+            failureThreshold: 10
+          resources:
+            requests:
+              memory: "64Mi"
+              cpu: "250m"
+            limits:
+              memory: "128Mi"
+              cpu: "500m"
+      volumes:
+        - name: config
+          configMap:
+            name: config
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchLabels:
+                  appName: "testApp"
+              topologyKey: "kubernetes.io/hostname"

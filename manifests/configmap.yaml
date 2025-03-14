@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: test-namespace
+  labels:
+    appName: "testApp"
+    env: "test"
+    manifestVersion: "0.0.1"
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: config
+  namespace: test-namespace
+  labels:
+    appName: "testApp"
+    env: "test"
+    manifestVersion: "0.0.1"
+data:
+  config.json: |-
+    configItem1=configValue1
+    configItem2=configValue2
