@@ -44,9 +44,9 @@ spec:
     - from:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/instance: ingress-nginx2
+              app.kubernetes.io/instance: ingress-nginx
   egress:
     - to:
         - podSelector:
             matchLabels:
-              app.kubernetes.io/instance: ingress-nginx2
+              app.kubernetes.io/instance: ingress-nginx
