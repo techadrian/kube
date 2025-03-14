@@ -4,7 +4,7 @@ metadata:
   name: test-app-policy
   namespace: test-namespace
 spec:
-  minAvailable: 2
+  minAvailable: 3
   selector:
     matchLabels:
       appName: "testApp"
